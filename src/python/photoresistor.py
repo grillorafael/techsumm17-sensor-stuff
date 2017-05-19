@@ -5,6 +5,8 @@ import time
 import sender as sender
 import params as params
 
+Threshold = 100
+
 DO = 17
 GPIO.setmode(GPIO.BCM)
 
@@ -17,12 +19,19 @@ def loop():
 	global iteration
 	status = 1
 	while True:
-		value = ADC.read(0)
-		data = {
-			'reading': value
-		}
-		sender.send('photoresistor', data)
+		try:
+			value = ADC.read(0)
+			data = {
+				'reading': value
+			}
+
+			sender.send('photoresistor', data, False)
+		except Exception as e:
+			print e
 		time.sleep(params.frequency())
+
+def destroy():
+    GPIO.cleanup()
 
 if __name__ == '__main__':
 	try:

@@ -8,7 +8,7 @@ import params as params
 
 # 33 37
 
-print sys.argv
+Timeout = 2
 
 TRIG = int(sys.argv[1])
 ECHO = int(sys.argv[2])
@@ -20,6 +20,9 @@ def setup():
     GPIO.setup(ECHO, GPIO.IN)
 
 def distance():
+    print "Getting Reading"
+    startTime = time.time()
+
     GPIO.output(TRIG, 0)
     time.sleep(0.000002)
 
@@ -29,9 +32,13 @@ def distance():
 
 
     while GPIO.input(ECHO) == 0:
+        if time.time() - startTime > Timeout:
+            return False
         a = 0
     time1 = time.time()
     while GPIO.input(ECHO) == 1:
+        if time.time() - startTime > Timeout:
+            return False
         a = 1
     time2 = time.time()
 
@@ -40,12 +47,20 @@ def distance():
 
 def loop():
     while True:
-        dis = distance()
-        data = {
-            'distance': dis
-        }
-        sender.send('sonar-{}'.format(INDEX), data)
+        try:
+            dis = distance()
+            print dis
+            if dis != False:
+                data = {
+                    'distance': dis
+                }
+                sender.send('sonar-{}'.format(INDEX), data, INDEX == 'front')
+        except Exception as e:
+            print e
         time.sleep(params.frequency())
+
+def destroy():
+    GPIO.cleanup()
 
 if __name__ == "__main__":
     setup()

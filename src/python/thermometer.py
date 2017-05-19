@@ -17,21 +17,27 @@ def loop():
     status = 1
     tmp = 1
     while True:
-        analogVal = ADC.read(2)
-        Vr = 5 * float(analogVal) / 255
-        Rt = 10000 * Vr / (5 - Vr)
-        temp = 1/(((math.log(Rt / 10000)) / 3950) + (1 / (273.15+25)))
-        temp = temp - 273.15
+        try:
+            analogVal = ADC.read(2)
+            Vr = 5 * float(analogVal) / 255
+            Rt = 10000 * Vr / (5 - Vr)
+            temp = 1/(((math.log(Rt / 10000)) / 3950) + (1 / (273.15+25)))
+            temp = temp - 273.15
 
-        data = {
-            'temperature': temp
-        }
+            data = {
+                'temperature': temp
+            }
 
-        sender.send('thermometer', data)
+            sender.send('thermometer', data, False)
 
-        if tmp != status:
-            status = tmp
+            if tmp != status:
+                status = tmp
+        except Exception as e:
+            print e
         time.sleep(params.frequency())
+
+def destroy():
+    GPIO.cleanup()
 
 if __name__ == '__main__':
     try:
